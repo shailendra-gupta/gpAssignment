@@ -173,7 +173,7 @@ app.controller("storeController", ["$scope", "$http",  "$window", "$timeout", "$
     this.displayed = [];
     this.data = [];
 	$scope.gPlace;
-	this.storeIdForEdit;
+	this.storepidIdForEdit;
 	var mapOptions;
     var googleMap;
     var searchMarker;
@@ -226,14 +226,14 @@ app.controller("storeController", ["$scope", "$http",  "$window", "$timeout", "$
     };
     this.callServer();
     
-    this.callStoreDetails = function callStoreDetails(storeIdForEdit) {
-//		alert(storeIdForEdit);
+    this.callStoreDetails = function callStoreDetails(storepidIdForEdit) {
+//		alert(storepidIdForEdit);
 	
 $http({
 	url: "http://grampowertest-bbagentapp.rhcloud.com/get_store_details.php",
 		method: "GET",
 		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-		params: {"storeId": "\"" + storeIdForEdit + "\""}
+		params: {"pid": storepidIdForEdit}
 	}).success(function(data, status, headers, config) {
 
 			if ( angular.isArray(data.store) ) {
@@ -246,7 +246,10 @@ $http({
 				$scope.searchLocation.lat = ctrl.singleStore.storeLatitude;
 				$scope.searchLocation.lng = ctrl.singleStore.storeLongitude;
 				$scope.search = ctrl.singleStore.storeLocation;
-				$scope.storeStartDay =  ctrl.singleStore.storeStartDay;
+				$scope.storeStartDay = ctrl.singleStore.storeStartDay;
+				$scope.storeEndDay = ctrl.singleStore.storeEndDay;
+				$scope.storeStartTime = ctrl.singleStore.storeStartTime;
+				$scope.storeEndTime = ctrl.singleStore.storeEndTime;
 				$scope.coverImageUrl = ctrl.singleStore.coverImageUrl;
 				$scope.photoGalleryUrls = ctrl.singleStore.photoGalleryUrls;
 				$scope.galleryImagesUploaded = true;  //Assuming user uploaded images are available
@@ -361,9 +364,10 @@ $http({
 	}).success(function(data, status, headers, config) {
 		alert("Store added to database");
 		$scope.data = data;
-		ctrl.subFrame = true;
+		ctrl.subFrame = false;
 		ctrl.addFrame = false;
 		ctrl.editFrame = false;
+		ctrl.callServer();
 	}).error(function(data, status, headers, config) {
 		alert("Something went wrong, Please try again !!");
 		$scope.status = status;
@@ -391,7 +395,7 @@ $http({
     "storeName": ctrl.singleStore.storeName,
 	"storeOwnerName": ctrl.singleStore.storeOwnerName,
     "storeAboutUs": ctrl.singleStore.storeAboutUs,
-	"storeWorkHours": ctrl.singleStore.storeStartDay + " - " + ctrl.singleStore.storeEndDay + " , " + ctrl.singleStore.storeStartTime + " - " + ctrl.singleStore.storeEndTime,
+	"storeWorkHours": $scope.storeStartDay + " - " + $scope.storeEndDay + " , " + $scope.storeStartTime + " - " + $scope.storeEndTime,
     "storeProductRange": ctrl.singleStore.storeProductRange,
 	"storeLatitude": $scope.searchLocation.lat,
 	"storeLongitude": $scope.searchLocation.lng,
@@ -428,6 +432,7 @@ $http({
 		ctrl.subFrame = true;
 		ctrl.addFrame = false;
 		ctrl.editFrame = false;
+		$window.scrollTo(0, 0);
 	};
 
 	this.addNewStore= function addNewStore() {
@@ -448,21 +453,26 @@ $http({
 		$scope.prev_img_gallery = "images/image_not_found_sq.png"
 		$scope.searchLocation.lat = "20.5936";
 		$scope.searchLocation.lng = "78.9628";
+		$scope.storeStartDay =  "";
+		$scope.storeEndDay =  "";
+		$scope.storeStartTime =  "";
+		$scope.storeEndTime =  "";
 };
 	
-	this.editStore= function editStore(storeIdForEdit) {
-		this.storeIdForEdit = storeIdForEdit;
+	this.editStore= function editStore(pid) {
+		this.storepidIdForEdit = pid;
 		ctrl.subFrame = false;
 		ctrl.addFrame = false;
 		ctrl.editFrame = true;
 		$window.scrollTo(0, 0);
-		this.callStoreDetails(this.storeIdForEdit);
+		this.callStoreDetails(this.storepidIdForEdit);
 };
 
 	this.showMainFrame = function showMainFrame(){
 		ctrl.subFrame = false;
 		ctrl.addFrame = false;
 		ctrl.editFrame = false;
+		$window.scrollTo(0, 0);
 		this.callServer();
 	};
 	

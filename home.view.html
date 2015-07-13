@@ -14,7 +14,7 @@
 
                         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                             <ul class="nav navbar-nav">
-                                <li class="active"><a href="">Home<span class="sr-only">(current)</span></a></li>
+                                <li class="active"><a href="#/">Home<span class="sr-only">(current)</span></a></li>
                                 <li class="dropdown">
                                     <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Retail Stores<span class="caret"></span></a>
                                     <ul class="dropdown-menu" role="menu">
@@ -33,6 +33,7 @@
                                     <i class="glyphicon glyphicon-plus">
                                     </i> Add New Retail Store
                                 </button></li>
+								<li><p style="margin: 10px;"><a href="#/login" class="btn btn-primary">Logout</a></p></li>
 
                             </ul>
                         </div><!-- /.navbar-collapse -->
@@ -142,7 +143,7 @@
                                                         <div class="container slider col-sm-12 col-md-6" style="text-align: center;">
 
                                                             <!-- enumerate all photos -->  <!-- Using dummy photos right now -->
-                                                            <img ng-repeat="photo in row.photoGalleryUrls.split(',')" class="slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="toggleModal(row); $event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
+                                                            <img ng-repeat="photo in row.photoGalleryUrls.split(',') track by $index" class="slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="toggleModal(row); $event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
 
                                                             <!-- prev / next controls -->
                                                             <a class="arrow prev" href="#" ng-click="showPrev(); $event.stopPropagation(); $event.preventDefault(); "></a>
@@ -150,7 +151,7 @@
 
                                                             <!-- extra navigation controls -->
                                                             <ul class="naviagtePics">
-                                                                <li ng-repeat="photo in row.photoGalleryUrls.split(',')" ng-class="{'active':isActive($index)}">
+                                                                <li ng-repeat="photo in row.photoGalleryUrls.split(',') track by $index" ng-class="{'active':isActive($index)}">
                                                                     <img ng-src="uploads/{{photo}}" ng-click="showPhoto($index); $event.stopPropagation(); $event.preventDefault();" err-src="images/image_not_found_rect.png"/>
                                                                 </li>
                                                             </ul>
@@ -219,7 +220,7 @@
 
                                         <div class="">
 
-                                            <button ng-click="mc.editStore(mc.singleStore.storeId)" value="Edit Store" name="Edit Store" ng-show="mc.subFrame" class="btnJQM edit_store">
+                                            <button ng-click="mc.editStore(mc.singleStore.pid)" value="Edit Store" name="Edit Store" ng-show="mc.subFrame" class="btnJQM edit_store">
                                                 <i class="glyphicon glyphicon-edit">
                                                 </i> Edit Retail Store
                                             </button>
@@ -301,7 +302,7 @@
                                                             <div class="container slider col-sm-12 col-md-6" style="text-align: center;">
 
                                                                 <!-- enumerate all photos --><!-- Using dummy photos right now -->
-                                                                <img ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',')" class="slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="toggleModal(mc.singleStore); $event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
+                                                                <img ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',') track by $index" class="slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="toggleModal(mc.singleStore); $event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
 
                                                                 <!-- prev / next controls -->
                                                                 <a class="arrow prev" href="#" ng-click="showPrev(); $event.stopPropagation(); $event.preventDefault(); "></a>
@@ -309,7 +310,7 @@
 
                                                                 <!-- extra navigation controls -->
                                                                 <ul class="naviagtePics">
-                                                                    <li ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',')" ng-class="{'active':isActive($index)}">
+                                                                    <li ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',') track by $index" ng-class="{'active':isActive($index)}">
                                                                         <img ng-src="uploads/{{photo}}" ng-click="showPhoto($index); $event.stopPropagation(); $event.preventDefault();" err-src="images/image_not_found_rect.png"/>
                                                                     </li>
                                                                 </ul>
@@ -576,7 +577,7 @@
                                     <option>Sun</option>
                                 </select>
                                     <p class="range_working_day_time"> to </p>
-                                    <select id="store_working_days_end" class="ui_select_adjust" ng-model="mc.singleStore.storeEndDay" ng-init="storeEndDay=4">
+                                    <select id="store_working_days_end" class="ui_select_adjust" ng-model="storeEndDay" ng-init="storeEndDay=4">
                                         <option>Mon</option>
                                         <option>Tue</option>
                                         <option>Wed</option>
@@ -585,7 +586,7 @@
                                         <option>Sat</option>
                                         <option>Sun</option>
                                     </select></td>
-                                <td><select id="store_working_hours_start" class="ui_select_adjust" ng-model="mc.singleStore.storeStartTime" ng-init="storeStartTime=0">
+                                <td><select id="store_working_hours_start" class="ui_select_adjust" ng-model="storeStartTime" ng-init="storeStartTime=0">
                                     <option>8:00 AM</option>
                                     <option>8:30 AM</option>
                                     <option>9:00 AM</option>
@@ -601,7 +602,7 @@
                                     <option>2:00 PM</option>
                                 </select>
                                     <p class="range_working_day_time"> to </p>
-                                    <select id="store_working_hours_end" class="ui_select_adjust" ng-model="mc.singleStore.storeEndTime" ng-init="storeEndTime=8">
+                                    <select id="store_working_hours_end" class="ui_select_adjust" ng-model="storeEndTime" ng-init="storeEndTime=8">
                                         <option>1:00 PM</option>
                                         <option>1:30 PM</option>
                                         <option>2:00 PM</option>
@@ -679,7 +680,7 @@
                 <div class="container slider modal-slider col-sm-12 col-md-6" style="text-align: center;">
 
                     <!-- enumerate all photos --><!-- Using dummy photos right now -->
-                    <img ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',')" class="slide modal-slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="$event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
+                    <img ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',') track by $index" class="slide modal-slide" ng-swipe-right="showPrev()" ng-swipe-left="showNext()" ng-show="isActive($index)" ng-src="uploads/{{photo}}" ng-click="$event.stopPropagation(); $event.preventDefault(); " err-src="images/image_not_found_rect.png"/>
 
                     <!-- prev / next controls -->
                     <a class="arrow prev" href="#" ng-click="showPrev(); $event.stopPropagation(); $event.preventDefault(); "></a>
@@ -687,7 +688,7 @@
 
                     <!-- extra navigation controls -->
                     <ul class="naviagtePics">
-                        <li ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',')" ng-class="{'active':isActive($index)}">
+                        <li ng-repeat="photo in mc.singleStore.photoGalleryUrls.split(',') track by $index" ng-class="{'active':isActive($index)}">
                             <img ng-src="uploads/{{photo}}" ng-click="showPhoto($index); $event.stopPropagation(); $event.preventDefault();" err-src="images/image_not_found_rect.png"/>
                         </li>
                     </ul>

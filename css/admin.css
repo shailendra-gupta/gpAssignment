@@ -1238,17 +1238,17 @@ th{
     position: relative;
     width: 450px;
 
-    -webkit-perspective: 600px;
-    -moz-perspective: 600px;
-    -ms-perspective: 600px;
-    -o-perspective: 600px;
-    perspective: 600px;
+    -webkit-perspective: none;
+    -moz-perspective: none;
+    -ms-perspective: none;
+    -o-perspective: none;
+    perspective: none;
 
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    -o-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    -webkit-transform-style: inherit;
+    -moz-transform-style: inherit;
+    -ms-transform-style: inherit;
+    -o-transform-style: inherit;
+    transform-style: inherit;
 }
 .slide {
     position: absolute;

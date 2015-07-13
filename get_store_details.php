@@ -18,11 +18,11 @@ $db = new DB_CONNECT();
 $con = mysqli_connect(DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE) or die(mysqli_error($con));
 
 // check for post data
-if (isset($_GET['storeId'])) {
-    $storeId = $_GET['storeId'];
+if (isset($_GET['pid'])) {
+    $pid = $_GET['pid'];
 
     // get a store from stores table
-    $result = mysqli_query($con, "SELECT *FROM stores WHERE storeId = $storeId");
+    $result = mysqli_query($con, "SELECT *FROM stores WHERE pid = $pid");
 
     if (!empty($result)) {
         // check for empty result
