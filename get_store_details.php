@@ -18,7 +18,7 @@ $db = new DB_CONNECT();
 $con = mysqli_connect(DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE) or die(mysqli_error($con));
 
 // check for post data
-if (isset($_GET["storeId"])) {
+if (isset($_GET['storeId'])) {
     $storeId = $_GET['storeId'];
 
     // get a store from stores table

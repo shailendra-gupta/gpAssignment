@@ -1,365 +1,4 @@
-var app = angular.module("storeApp", ['smart-table','ngAnimate', 'ngTouch','angularUtils.directives.dirPagination']);
-
-app.controller("storeController", ["$scope", "$http",  "$window", function($scope, $http, $window) {
-    var ctrl = this;
-    this.displayed = [];
-    this.data = [];
-	$scope.gPlace;
-	this.storeIdForEdit;
-	var mapOptions;
-    var googleMap;
-    var searchMarker;
-    var searchLatLng;
-	$scope.coverPicFileName="";
-	$scope.coverPic="";
-	$scope.galleryImageFileName="";
-	this.uploadTrial = 0;
-	$scope.photoGalleryUrls = [];
-	$scope.prev_img_gallery_array = "";
-	$scope.galleryPathArr = "";
-	$scope.coverImageUrl = "";
-	$scope.currentPage = 1;
-	$scope.pageSize = 5;
-	
-    this.colCtrl = {
-        pid: true,
-        storeId: true,
-        storeName: true,
-        storeOwnerName: true,
-        storeAboutUs: true,
-        storeWorkHours: true,
-        storeProductRange: true,
-        storeLatitude: true,
-        storeLongitude: true,
-        storeLocation: true,
-        coverImageUrl: true,
-        photoGalleryUrls: true,
-        storeContactNum: true
-    };
-    this.showMore = true;
-    this.callServer = function callServer() {
-        $http.get('http://grampowertest-bbagentapp.rhcloud.com/get_all_stores_info.php').
-		success(function(data) {
-		if ( angular.isArray(data.stores) ) {
-				$scope.stores = data.stores;
-			}
-			else {
-				$scope.stores = [data.stores];
-			}
-        }).
-        error(function(data) {
-            console.error("Failed to load data");
-        });
-    };
-    this.callServer();
-    
-    this.callStoreDetails = function callStoreDetails(storeIdForEdit) {
-		alert(storeIdForEdit);
-/*        $http.get('http://grampowertest-bbagentapp.rhcloud.com/get_store_details.php/?storeId="' + storeIdForEdit + '"').
-		success(function(data) {
-		if ( angular.isArray(data.store) ) {
-				$scope.singelStore = data.store;
-				alert($scope.singelStore.storeId);
-			}
-			else {
-				$scope.singelStore = [data.store];
-				alert(data.store);
-			}
-        }).
-        error(function(data) {
-            console.error("Failed to load data");
-        });*/
-		
-$http({
-		url: 'http://grampowertest-bbagentapp.rhcloud.com/get_store_details.php/?storeId="' + storeIdForEdit + '"',
-		method: "GET",
-	}).success(function(data, status, headers, config) {
-		if ( angular.isArray(data.store) ) {
-				$scope.singelStore = data.store;
-				alert($scope.singelStore.storeId);
-			}
-			else {
-				$scope.singelStore = [data.store];
-				alert(data.store);
-			}
-	}).error(function(data, status, headers, config) {
-		alert("Something went wrong during data retrieval, Please try again !!");
-		$scope.status = status;
-});
-		
-    };
-
-	$scope.cover_pic_changed = function(element) {
-
-   			var photofile = element.files[0];
-			var reader = new FileReader();
-			reader.onload = function(e) {
-				$scope.$apply(function() {
-					$scope.prev_img = e.target.result;
-				});
-			};
-			reader.readAsDataURL(photofile);
-			$scope.coverPic = $scope.prev_img;
-			$scope.coverPicFileName = element.files[0].name;
-			//alert($scope.coverPicFileName);
-};	
-
-	 this.uploadCoverPic = function uploadCoverPic() {
-		if($scope.coverPicFileName != ""){
-		//alert(imageNameArr[imageNameArr.length-1]);
-$http({
-		url: "http://grampowertest-bbagentapp.rhcloud.com/fileUpload.php",
-		method: "POST",
-		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-		data: $.param({
-    "image": $scope.coverPic,
-    "filename": $scope.coverPicFileName
-})
-	}).success(function(data, status, headers, config) {
-		this.coverPicUploaded = true;
-		$scope.data = data;
-		$scope.coverImageUrl = $scope.coverPicFileName;
-	}).error(function(data, status, headers, config) {
-		alert("Something went wrong during cover pic upload, Please try again !!");
-		this.coverPicUploaded = false;
-		$scope.status = status;
-});
-}
-};
-
-	$scope.multiple_files_added = function(element) {
-
- for (var i = 0; i < element.files.length; i++) {
-   			var photofile = element.files[i];
-			var reader = new FileReader();
-			reader.onload = function(e) {
-				$scope.$apply(function() {
-					$scope.prev_img_gallery = e.target.result;
-				});
-			};
-			reader.readAsDataURL(photofile);
-			$scope.prev_img_gallery_array = $scope.prev_img_gallery_array + "," + $scope.prev_img_gallery;
-			$scope.galleryImageFileName = $scope.galleryImageFileName + "," + element.files[i].name;
-		}
-};	
-
-	 this.uploadGalleryImages = function uploadGalleryImages() {
-	 
-		var galleryImageFileNameArr = $scope.galleryImageFileName.split(",");
-		var galleryPathArr = $scope.prev_img_gallery_array.split(",");
-		if($scope.galleryImageFileName != ""){
- for (var i = 0; i < galleryImageFileNameArr.length; i++) {
-$http({
-		url: "http://grampowertest-bbagentapp.rhcloud.com/fileUpload.php",
-		method: "POST",
-		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-		data: $.param({
-    "image": $scope.galleryPathArr[i],
-    "filename": galleryImageFileNameArr[i]
-})
-	}).success(function(data, status, headers, config) {
-		this.galleryImagesUploaded = true;
-		$scope.data = data;
-		$scope.photoGalleryUrls = $scope.photoGalleryUrls + "," + galleryImageFileNameArr[i];
-	}).error(function(data, status, headers, config) {
-		alert("Something went wrong during gallery images upload, Please try again !!");
-		this.galleryImagesUploaded = false;
-		$scope.status = status;
-});
-}
-}
-};
-
-	this.postDetails = function postDetails() {
-	ctrl.isLoading = true;
-	if(this.uploadTrial < 1){
-	this.uploadCoverPic();
-	this.uploadGalleryImages();
-	}
-	if((this.galleryImagesUploaded && !this.coverPicUploaded) || (!this.galleryImagesUploaded && this.coverPicUploaded) || (!this.galleryImagesUploaded && !this.coverPicUploaded) && 	this.uploadTrial < 1){
-		alert("Something went wrong during Image Upload, Please choose both cover pic & gallery images and try again !!");
-	this.uploadTrial = 	this.uploadTrial + 1;
-	} else {	
-		if(this.uploadTrial >= 1 && this.uploadTrial < 2 ){
-		alert("Adding retail store to database without cover pic / gallery images");
-		} //Showing alert only once
-	this.uploadTrial = 	this.uploadTrial + 1;
-		
-		if($scope.storeId != "" && $scope.storeName != "" && $scope.storeOwnerName != "" && $scope.storeAboutUs != "" &&  $scope.storeProductRange != "" &&  $scope.search != ""){ 
-$http({
-	url: "http://grampowertest-bbagentapp.rhcloud.com/create_store.php",
-		method: "POST",
-		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-		data: $.param({
-    "storeId": $scope.storeId,
-    "storeName": $scope.storeName,
-	"storeOwnerName": $scope.storeOwnerName,
-    "storeAboutUs": $scope.storeAboutUs,
-	"storeWorkHours": $scope.storeStartDay + " - " + $scope.storeEndDay + " , " + $scope.storeStartTime + " - " + $scope.storeEndTime,
-    "storeProductRange": $scope.storeProductRange,
-	"storeLatitude": $scope.searchLocation.lat,
-	"storeLongitude": $scope.searchLocation.lng,
-	"storeLocation": $scope.search,
-	"coverImageUrl": $scope.coverImageUrl,
-	"photoGalleryUrls": $scope.photoGalleryUrls,
-	"storeContactNum": $scope.storeContactNum
-})
-	}).success(function(data, status, headers, config) {
-		alert("Store added to database");
-		$scope.data = data;
-	}).error(function(data, status, headers, config) {
-		alert("Something went wrong, Please try again !!");
-		$scope.status = status;
-});
-} else {
-			alert("Please fill all details and try again");
-}
-
-}
-
-};
-	this.subFrame = false;
-	this.addEditFrame = false;
-
-	this.openStore= function openStore(row) {
-		ctrl.singleStore = row; 
-		ctrl.subFrame = true;
-		ctrl.addEditFrame = false;
-
-	};
-
-	this.addNewStore= function addNewStore() {
-		ctrl.subFrame = false;
-		ctrl.addEditFrame = true;
-		$window.scrollTo(0, 0);
-		$scope.storeId = "";
-		$scope.storeName = "";
-		$scope.storeOwnerName = "";
-		$scope.storeAboutUs = "";
-		$scope.storeStartDay  = "";
-		$scope.storeEndDay = "";
-		$scope.storeStartTime = "";
-		$scope.storeEndTime = "";
-		$scope.storeProductRange = "";
-		$scope.searchLocation.lat = "";
-		$scope.searchLocation.lng = "";
-		$scope.search = "";
-		$scope.coverImageUrl = "";
-		$scope.photoGalleryUrls = "";
-		$scope.storeContactNum = "";
-};
-	
-	this.editStore= function editStore(storeIdForEdit) {
-		this.storeIdForEdit = storeIdForEdit;
-		ctrl.subFrame = false;
-		ctrl.addEditFrame = true;
-		$window.scrollTo(0, 0);
-		this.callStoreDetails(this.storeIdForEdit);
-		$scope.storeId = $scope.singelStore.storeId;
-		$scope.storeName = $scope.singelStore.storeName;
-		$scope.storeOwnerName = $scope.singelStore.storeOwnerName;
-		$scope.storeAboutUs = $scope.singelStore.storeAboutUs;
-		$scope.storeStartDay  = $scope.singelStore.storeStartDay;
-		$scope.storeEndDay = $scope.singelStore.storeEndDay;
-		$scope.storeStartTime = $scope.singelStore.storeStartTime;
-		$scope.storeEndTime = $scope.singelStore.storeEndTime;
-		$scope.storeProductRange = $scope.singelStore.storeProductRange;
-		$scope.searchLocation.lat = $scope.singelStore.searchLocation.lat;
-		$scope.searchLocation.lng = $scope.singelStore.searchLocation.lng;
-		$scope.search = $scope.singelStore.search;
-		$scope.coverImageUrl = $scope.singelStore.coverImageUrl;
-		$scope.photoGalleryUrls = $scope.singelStore.photoGalleryUrls;
-		$scope.storeContactNum = $scope.singelStore.storeContactNum;
-};
-
-	this.showMainFrame = function showMainFrame(){
-		ctrl.subFrame = false;
-		ctrl.addEditFrame = false;
-		this.callServer();
-	};
-	
-    // Set of Photos
-    $scope.photos = [
-        {src: 'images/h_store11.png', desc: 'Image 01'},
-        {src: 'images/h_store10.png', desc: 'Image 02'},
-        {src: 'images/h_store9.png', desc: 'Image 03'},
-        {src: 'images/h_store8.png', desc: 'Image 04'},
-        {src: 'images/h_store7.png', desc: 'Image 05'},
-        {src: 'images/h_store6.png', desc: 'Image 06'}
-    ];
-
-    // initial image index
-    $scope._Index = 0;
-
-    // if a current image is the same as requested image
-    $scope.isActive = function (index) {
-        return $scope._Index === index;
-    };
-
-    // show prev image
-    $scope.showPrev = function () {
-        $scope._Index = ($scope._Index > 0) ? --$scope._Index : $scope.photos.length - 1;
-    };
-
-    // show next image
-    $scope.showNext = function () {
-        $scope._Index = ($scope._Index < $scope.photos.length - 1) ? ++$scope._Index : 0;
-    };
-
-    // show a certain image
-    $scope.showPhoto = function (index) {
-        $scope._Index = index;
-    };
-	
-	$scope.showModal = false;
-    
-	$scope.toggleModal = function(){
-        $scope.showModal = !$scope.showModal;
-    };
-
-    $scope.searchLocation = {
-      lat: 26.9, 
-      lng: 75.8 
-    }
-	
-    $scope.gotoLocation = function (lat, lng) {
-        if ($scope.searchLocation.lat != lat || $scope.searchLocation.lng != lng) {
-            $scope.searchLocation = { lat: lat, lng: lng };
-            if (!$scope.$$phase) $scope.$apply("searchLocation");
-        }
-    };
-
-    // geo-coding
-    $scope.search = "";
-    $scope.geoCode = function () {
-        if ($scope.search && $scope.search.length > 0) {
-            if (!this.geocoder) this.geocoder = new google.maps.Geocoder();
-            this.geocoder.geocode({ 'address': $scope.search }, function (results, status) {
-                if (status == google.maps.GeocoderStatus.OK) {
-                    var searchLocation = results[0].geometry.location;
-                    $scope.search = results[0].formatted_address;
-                    $scope.gotoLocation(searchLocation.lat(), searchLocation.lng());
-                } else {
-                    alert("Sorry, this search produced no results.");
-                }
-            });
-        }
-    };
-			
-  $scope.pageChangeHandler = function(num) {
-      console.log('stores page changed to ' + num);
-  };
-			
-$scope.$on('my:keyup', function(event, keyEvent) {
-			  //console.log('keyup', keyEvent);
-			  if(keyEvent.keyCode === 27 ) {
-				ctrl.subFrame = false;
-				ctrl.addEditFrame = false;
-                event.preventDefault();
-            }
-  });
-  
-}]);
+var app = angular.module('storeApp');
 
 app.directive('gmap',function(){
   return {
@@ -396,7 +35,7 @@ app.directive('gmap',function(){
             mapTypeId: google.maps.MapTypeId.ROADMAP
           };
 
-        googleMap = new google.maps.Map(element[0],mapOptions);
+		googleMap = new google.maps.Map(element[0],mapOptions);
 		
         if(scope.mdraggable == "true"){
 		            
@@ -422,11 +61,7 @@ app.directive('gmap',function(){
         });
         		
 		}
-		
-		var center = googleMap.getCenter();
-		google.maps.event.trigger(googleMap, "resize");
-		googleMap.setCenter(center);
-  
+		  
       };
       
       scope.$watch('myModel', function(value){
@@ -500,7 +135,7 @@ app.directive('modal', function () {
     };
   });
   
-  app.directive('errSrc', function() {
+app.directive('errSrc', function() {
   return {
     link: function(scope, element, attrs) {
 
@@ -519,13 +154,6 @@ app.directive('modal', function () {
   }
 });
 
-app.controller("OtherController", ["$scope", function($scope) {
-$scope.pageChangeHandler = function(num) {
-    console.log('going to page ' + num);
-  };
-  	
-}]);
-
 app.directive('ngEnter', function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
@@ -540,18 +168,441 @@ app.directive('ngEnter', function () {
     };
 });
 
+app.controller("storeController", ["$scope", "$http",  "$window", "$timeout", "$upload", function($scope, $http, $window, $timeout, $upload) {
+    var ctrl = this;
+    this.displayed = [];
+    this.data = [];
+	$scope.gPlace;
+	this.storeIdForEdit;
+	var mapOptions;
+    var googleMap;
+    var searchMarker;
+    var searchLatLng;
+	$scope.coverPicFileName="";
+	$scope.coverPic="";
+	$scope.galleryImageFileName="";
+	this.uploadTrial = 0;
+	$scope.photoGalleryUrls;
+	$scope.prev_img_gallery_array = [];
+	$scope.galleryPathArr = "";
+	$scope.coverImageUrl = "";
+	$scope.currentPage = 1;
+	$scope.pageSize = 5;
+	$scope.galleryImagesUploaded = false;
+	$scope.coverPicUploaded = false;
+	$scope.galleryImagesUploadStatus = [];
+	$scope.uploadResult = [];
+	$scope.pid = ""
 
-/*app.config(function ($routeProvider) {
-    $routeProvider.
-    when('/subFrame', {
-        templateUrl: 'subFrame.html',
-        controller: 'subFrameController'
-    }).
-    when('/addEditFrame', {
-        templateUrl: 'addEditFrame.html',
-        controller: 'addEditFrameController'
-    }).
-    otherwise({
-        redirectTo: '/home'
-    });
-});*/
+    this.colCtrl = {
+        pid: true,
+        storeId: true,
+        storeName: true,
+        storeOwnerName: true,
+        storeAboutUs: true,
+        storeWorkHours: true,
+        storeProductRange: true,
+        storeLatitude: true,
+        storeLongitude: true,
+        storeLocation: true,
+        coverImageUrl: true,
+        photoGalleryUrls: true,
+        storeContactNum: true
+    };
+    this.showMore = true;
+    this.callServer = function callServer() {
+        $http.get('http://grampowertest-bbagentapp.rhcloud.com/get_all_stores_info.php').
+		success(function(data) {
+		if ( angular.isArray(data.stores) ) {
+				$scope.stores = data.stores;
+			}
+			else {
+				$scope.stores = [data.stores];
+			}
+        }).
+        error(function(data) {
+            console.error("Failed to load data");
+        });
+    };
+    this.callServer();
+    
+    this.callStoreDetails = function callStoreDetails(storeIdForEdit) {
+//		alert(storeIdForEdit);
+	
+$http({
+	url: "http://grampowertest-bbagentapp.rhcloud.com/get_store_details.php",
+		method: "GET",
+		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+		params: {"storeId": "\"" + storeIdForEdit + "\""}
+	}).success(function(data, status, headers, config) {
+
+			if ( angular.isArray(data.store) ) {
+				ctrl.returnedSingleStore = data.store;
+				ctrl.singleStore = ctrl.returnedSingleStore[0];
+				$scope.pid = ctrl.singleStore.pid;
+				$scope.prev_img = "uploads/" + ctrl.singleStore.coverImageUrl;
+				$scope.prev_img_gallery_array = ctrl.singleStore.photoGalleryUrls.split(',');
+				$scope.prev_img_gallery = "uploads/" + $scope.prev_img_gallery_array[0];
+				$scope.searchLocation.lat = ctrl.singleStore.storeLatitude;
+				$scope.searchLocation.lng = ctrl.singleStore.storeLongitude;
+				$scope.search = ctrl.singleStore.storeLocation;
+				$scope.storeStartDay =  ctrl.singleStore.storeStartDay;
+				$scope.coverImageUrl = ctrl.singleStore.coverImageUrl;
+				$scope.photoGalleryUrls = ctrl.singleStore.photoGalleryUrls;
+				$scope.galleryImagesUploaded = true;  //Assuming user uploaded images are available
+				$scope.coverPicUploaded = true; //Assuming user uploaded images are available
+			}
+			else {
+				ctrl.returnedSingleStore = [data.store];
+				console.log(ctrl.returnedSingleStore);
+			}
+			}).error(function(data, status, headers, config) {
+		alert("Something went wrong, Please try again !!");
+		$scope.status = status;
+});
+	
+    };
+
+	$scope.cover_pic_changed = function(element) {
+
+   			var photofile = element.files[0];
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				$scope.$apply(function() {
+					$scope.prev_img = e.target.result;
+				});
+			};
+			reader.readAsDataURL(photofile);
+			$scope.coverPic = $scope.prev_img;
+			$scope.coverPicFileName = element.files[0].name;
+			$scope.coverImageUrl = $scope.coverPicFileName;
+};	
+
+$scope.multiple_files_added = function(element) {
+
+ for (var i = 0; i < element.files.length; i++) {
+   			var photofile = element.files[i];
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				$scope.$apply(function() {
+					$scope.prev_img_gallery = e.target.result;
+				});
+			};
+			reader.readAsDataURL(photofile);
+			$scope.prev_img_gallery_array.push($scope.prev_img_gallery);
+			$scope.photoGalleryUrls = $scope.photoGalleryUrls + "," + element.files[i].name;
+		}
+		
+			$scope.photoGalleryUrls = $scope.photoGalleryUrls.replace(/^,/, "");
+};	
+
+$scope.onFilesSelect = function($files) {
+for (var i = 0; i < $files.length; i++) {
+var $file = $files[i];
+$upload.upload({
+url: 'http://grampowertest-bbagentapp.rhcloud.com/fileUpload.php',
+file: $file,
+progress: function(e){}
+}).then(function(response) {
+$timeout(function() {
+$scope.uploadResult.push(response.data);
+$scope.galleryImagesUploaded = true; //Presuming to be upload, background check to follow
+console.log($scope.uploadResult);
+console.log($scope.galleryImagesUploaded);
+for (var j = 0; j < $scope.uploadResult.length; j++) {
+if(!($scope.uploadResult[j].error == "0")){
+$scope.galleryImagesUploaded = false; //Changing to false even if one upload fails
+}
+}
+});
+});}
+}
+
+$scope.onSingleFileSelect = function($files) {
+var $file = $files[0];
+$upload.upload({
+url: 'http://grampowertest-bbagentapp.rhcloud.com/fileUpload.php',
+file: $file,
+progress: function(e){}
+}).then(function(response) {
+$timeout(function() {
+$scope.uploadResult.push(response.data);
+if($scope.uploadResult["0"].error == "0"){
+$scope.coverPicUploaded = true;
+}
+console.log($scope.uploadResult);
+console.log($scope.coverPicUploaded);
+});
+});
+}
+
+	this.postDetails = function postDetails() {
+	if($scope.galleryImagesUploaded && $scope.coverPicUploaded){
+		
+		if($scope.storeId != "" && $scope.storeName != "" && $scope.storeOwnerName != "" && $scope.storeAboutUs != "" &&  $scope.storeProductRange != "" &&  $scope.search != ""){ 
+$http({
+	url: "http://grampowertest-bbagentapp.rhcloud.com/create_store.php",
+		method: "POST",
+		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+		data: $.param({
+    "storeId": $scope.storeId,
+    "storeName": $scope.storeName,
+	"storeOwnerName": $scope.storeOwnerName,
+    "storeAboutUs": $scope.storeAboutUs,
+	"storeWorkHours": $scope.storeStartDay + " - " + $scope.storeEndDay + " , " + $scope.storeStartTime + " - " + $scope.storeEndTime,
+    "storeProductRange": $scope.storeProductRange,
+	"storeLatitude": $scope.searchLocation.lat,
+	"storeLongitude": $scope.searchLocation.lng,
+	"storeLocation": $scope.search,
+	"coverImageUrl": $scope.coverImageUrl,
+	"photoGalleryUrls": $scope.photoGalleryUrls,
+	"storeContactNum": $scope.storeContactNum
+})
+	}).success(function(data, status, headers, config) {
+		alert("Store added to database");
+		$scope.data = data;
+		ctrl.subFrame = true;
+		ctrl.addFrame = false;
+		ctrl.editFrame = false;
+	}).error(function(data, status, headers, config) {
+		alert("Something went wrong, Please try again !!");
+		$scope.status = status;
+});
+} else {
+			alert("Please fill all details and try again");
+}
+
+} else {
+		alert("Something went wrong, Please try again !!");
+}
+
+};
+
+	this.updateDetails = function updateDetails() {
+	if($scope.galleryImagesUploaded && $scope.coverPicUploaded){
+		if(ctrl.singleStore.storeId != "" && ctrl.singleStore.storeName != "" && ctrl.singleStore.storeOwnerName != "" && ctrl.singleStore.storeAboutUs != "" &&  ctrl.singleStore.storeProductRange != "" &&  $scope.search != ""){
+$http({
+	url: "http://grampowertest-bbagentapp.rhcloud.com/update_store.php",
+		method: "POST",
+		headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+		data: $.param({
+	"pid": ctrl.singleStore.pid,
+    "storeId": ctrl.singleStore.storeId,
+    "storeName": ctrl.singleStore.storeName,
+	"storeOwnerName": ctrl.singleStore.storeOwnerName,
+    "storeAboutUs": ctrl.singleStore.storeAboutUs,
+	"storeWorkHours": ctrl.singleStore.storeStartDay + " - " + ctrl.singleStore.storeEndDay + " , " + ctrl.singleStore.storeStartTime + " - " + ctrl.singleStore.storeEndTime,
+    "storeProductRange": ctrl.singleStore.storeProductRange,
+	"storeLatitude": $scope.searchLocation.lat,
+	"storeLongitude": $scope.searchLocation.lng,
+	"storeLocation": $scope.search,
+	"coverImageUrl": $scope.coverImageUrl,
+	"photoGalleryUrls": $scope.photoGalleryUrls,
+	"storeContactNum": ctrl.singleStore.storeContactNum
+})
+	}).success(function(data, status, headers, config) {
+		alert("Store added to database");
+		$scope.data = data;
+		console.log(data);
+		console.log(status);
+		ctrl.subFrame = false;
+		ctrl.addFrame = false;
+		ctrl.editFrame = false;
+		ctrl.callServer();
+	}).error(function(data, status, headers, config) {
+		alert("Something went wrong, Please try again !!");
+		$scope.status = status;
+});
+} else {
+			alert("Please fill all details and try again");
+}
+
+} else {
+		alert("Check Gallery Images, Please try again !!");
+}
+
+};
+
+	this.openStore= function openStore(row) {
+		ctrl.singleStore = row; 
+		ctrl.subFrame = true;
+		ctrl.addFrame = false;
+		ctrl.editFrame = false;
+	};
+
+	this.addNewStore= function addNewStore() {
+		ctrl.subFrame = false;
+		ctrl.addFrame = true;
+		ctrl.editFrame = false;
+		$window.scrollTo(0, 0);
+		$scope.storeId = "";
+		$scope.storeName = "";
+		$scope.storeOwnerName = "";
+		$scope.storeAboutUs = "";
+		$scope.storeProductRange = "";
+		$scope.search = "";
+		$scope.coverImageUrl = "";
+		$scope.photoGalleryUrls = "";
+		$scope.storeContactNum = "";
+		$scope.prev_img = "images/image_not_found_sq.png"
+		$scope.prev_img_gallery = "images/image_not_found_sq.png"
+		$scope.searchLocation.lat = "20.5936";
+		$scope.searchLocation.lng = "78.9628";
+};
+	
+	this.editStore= function editStore(storeIdForEdit) {
+		this.storeIdForEdit = storeIdForEdit;
+		ctrl.subFrame = false;
+		ctrl.addFrame = false;
+		ctrl.editFrame = true;
+		$window.scrollTo(0, 0);
+		this.callStoreDetails(this.storeIdForEdit);
+};
+
+	this.showMainFrame = function showMainFrame(){
+		ctrl.subFrame = false;
+		ctrl.addFrame = false;
+		ctrl.editFrame = false;
+		this.callServer();
+	};
+	
+    // Set of Photos
+    $scope.photos = [
+        {src: 'images/h_store10.png', desc: 'Image 02'},
+        {src: 'images/h_store9.png', desc: 'Image 03'},
+        {src: 'images/h_store8.png', desc: 'Image 04'},
+        {src: 'images/h_store7.png', desc: 'Image 05'},
+        {src: 'images/h_store6.png', desc: 'Image 06'}
+    ];
+	
+    // initial image index
+    $scope._Index = 0;
+
+    // if a current image is the same as requested image
+    $scope.isActive = function (index) {
+        return $scope._Index === index;
+    };
+
+    // show prev image
+    $scope.showPrev = function () {
+        $scope._Index = ($scope._Index > 0) ? --$scope._Index : $scope.photos.length - 1;
+    };
+
+    // show next image
+    $scope.showNext = function () {
+        $scope._Index = ($scope._Index < $scope.photos.length - 1) ? ++$scope._Index : 0;
+    };
+
+    // show a certain image
+    $scope.showPhoto = function (index) {
+        $scope._Index = index;
+    };
+	
+	$scope.showModal = false;
+    
+	$scope.toggleModal = function(row){
+		ctrl.singleStore = row; 
+        $scope.showModal = !$scope.showModal;
+    };
+
+    $scope.searchLocation = {
+      lat: 20.5936, 
+      lng: 78.9628 
+    }
+	
+    $scope.gotoLocation = function (lat, lng) {
+        if ($scope.searchLocation.lat != lat || $scope.searchLocation.lng != lng) {
+            $scope.searchLocation = { lat: lat, lng: lng };
+            if (!$scope.$$phase) $scope.$apply("searchLocation");
+        }
+    };
+
+    // geo-coding
+    $scope.search = "";
+    $scope.geoCode = function () {
+        if ($scope.search && $scope.search.length > 0) {
+            if (!this.geocoder) this.geocoder = new google.maps.Geocoder();
+            this.geocoder.geocode({ 'address': $scope.search }, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    var searchLocation = results[0].geometry.location;
+                    $scope.search = results[0].formatted_address;
+                    $scope.gotoLocation(searchLocation.lat(), searchLocation.lng());
+                } else {
+                    alert("Sorry, this search produced no results. Check your internet connection and try again");
+                }
+            });
+        }
+    };
+			
+  $scope.pageChangeHandler = function(num) {
+      console.log('stores page changed to ' + num);
+  };
+			
+$scope.$on('my:keyup', function(event, keyEvent) {
+			  //console.log('keyup', keyEvent);
+			  if(keyEvent.keyCode === 27 ) {
+				ctrl.subFrame = false;
+				ctrl.addFrame = false;
+				ctrl.editFrame = false;
+                event.preventDefault();
+            }
+  });
+  
+  
+}]);
+
+app.controller("OtherController", ["$scope", function($scope) {
+
+$scope.pageChangeHandler = function(num) {
+    console.log('going to page ' + num);
+  };
+  	
+}]);
+
+app.controller("LoginController", ['$location', 'AuthenticationService', 'FlashService', function($location, AuthenticationService, FlashService) {
+
+        var vm = this;
+
+        vm.login = login;
+
+        (function initController() {
+            // reset login status
+            AuthenticationService.ClearCredentials();
+        })();
+
+        function login() {
+            vm.dataLoading = true;
+            AuthenticationService.Login(vm.username, vm.password, function (response) {
+                if (response.success) {
+                    AuthenticationService.SetCredentials(vm.username, vm.password);
+                    $location.path('/');
+                } else {
+                    FlashService.Error(response.message);
+                    vm.dataLoading = false;
+                }
+            });
+        };
+  	
+}]);
+
+app.controller("RegisterController", ['UserService', '$location', '$rootScope', 'FlashService', function(UserService, $location, $rootScope, FlashService) {
+
+        var vm = this;
+
+        vm.register = register;
+
+        function register() {
+            vm.dataLoading = true;
+            UserService.Create(vm.user)
+                .then(function (response) {
+                    if (response.success) {
+                        FlashService.Success('Registration successful', true);
+                        $location.path('/login');
+                    } else {
+                        FlashService.Error(response.message);
+                        vm.dataLoading = false;
+                    }
+                });
+        }
+  	
+}]);
